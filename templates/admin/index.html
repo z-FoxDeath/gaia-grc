@@ -1,0 +1,162 @@
+{% extends "admin/index.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="mb-8">
+    <!-- Grade de Cartões de Indicadores GAIA -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div class="p-4 rounded-lg bg-white dark:bg-base-800 border border-base-200 dark:border-base-700 shadow-sm">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-base-500 dark:text-base-400">Total de Riscos</p>
+                    <h3 class="text-2xl font-bold text-base-900 dark:text-white mt-1">{{ total_riscos|default:0 }}</h3>
+                </div>
+                <div class="p-3 rounded-full bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400">
+                    <span class="material-symbols-outlined">shield</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-4 rounded-lg bg-white dark:bg-base-800 border border-base-200 dark:border-base-700 shadow-sm">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-base-500 dark:text-base-400">Riscos Críticos</p>
+                    <h3 class="text-2xl font-bold text-red-600 dark:text-red-400 mt-1">{{ riscos_criticos|default:0 }}</h3>
+                </div>
+                <div class="p-3 rounded-full bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400">
+                    <span class="material-symbols-outlined">warning</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-4 rounded-lg bg-white dark:bg-base-800 border border-base-200 dark:border-base-700 shadow-sm">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-base-500 dark:text-base-400">Controles Mapeados</p>
+                    <h3 class="text-2xl font-bold text-base-900 dark:text-white mt-1">{{ total_controles|default:0 }}</h3>
+                </div>
+                <div class="p-3 rounded-full bg-green-50 dark:bg-green-950/50 text-green-600 dark:text-green-400">
+                    <span class="material-symbols-outlined">verified_user</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-4 rounded-lg bg-white dark:bg-base-800 border border-base-200 dark:border-base-700 shadow-sm">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-base-500 dark:text-base-400">Framework Ativo</p>
+                    <h3 class="text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-1">COSO / ISO 31000</h3>
+                </div>
+                <div class="p-3 rounded-full bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400">
+                    <span class="material-symbols-outlined">analytics</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Seção dos Mapas de Calor (Inerente vs Residual) -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        <!-- HEATMAP 1: Risco Inerente -->
+        <div class="p-5 rounded-lg bg-white dark:bg-base-800 border border-base-200 dark:border-base-700 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h2 class="text-base font-bold text-base-900 dark:text-white flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span> Matriz de Risco Inerente
+                    </h2>
+                    <p class="text-xs text-base-500 dark:text-base-400">Cenário sem mitigação de controles</p>
+                </div>
+            </div>
+
+            <div class="flex gap-2 items-center">
+                <div class="flex flex-col items-center justify-center -rotate-90 text-[11px] font-bold tracking-wider text-base-500 dark:text-base-400 w-5">
+                    IMPACTO
+                </div>
+                <div class="flex-1 overflow-x-auto">
+                    <table class="w-full border-collapse">
+                        <tbody>
+                            {% for linha in matriz_inerente %}
+                            <tr>
+                                <td class="w-6 text-right pr-2 text-xs font-semibold text-base-400">
+                                    {{ linha.nivel_impacto }}
+                                </td>
+                                {% for celula in linha.colunas %}
+                                <td class="p-1 w-1/5">
+                                    <a href="{% url 'admin:apollo_risco_changelist' %}?probabilidade__exact={{ celula.probabilidade }}&impacto__exact={{ celula.impacto }}"
+                                       class="flex flex-col items-center justify-center h-12 rounded border text-center transition-transform hover:scale-105 {{ celula.classe_cor }}">
+                                        <span class="text-base font-extrabold leading-none">{{ celula.total }}</span>
+                                        <span class="text-[9px] opacity-80 mt-0.5">P{{ celula.probabilidade }}×I{{ celula.impacto }}</span>
+                                    </a>
+                                </td>
+                                {% endfor %}
+                            </tr>
+                            {% endfor %}
+                            <tr>
+                                <td></td>
+                                {% for p in "12345" %}
+                                <td class="text-center pt-1.5 text-xs font-semibold text-base-400">{{ p }}</td>
+                                {% endfor %}
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="text-center text-[11px] font-bold tracking-wider text-base-500 dark:text-base-400 mt-1">
+                        PROBABILIDADE
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- HEATMAP 2: Risco Residual -->
+        <div class="p-5 rounded-lg bg-white dark:bg-base-800 border border-base-200 dark:border-base-700 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h2 class="text-base font-bold text-base-900 dark:text-white flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Matriz de Risco Residual
+                    </h2>
+                    <p class="text-xs text-base-500 dark:text-base-400">Cenário após eficácia dos controles</p>
+                </div>
+            </div>
+
+            <div class="flex gap-2 items-center">
+                <div class="flex flex-col items-center justify-center -rotate-90 text-[11px] font-bold tracking-wider text-base-500 dark:text-base-400 w-5">
+                    IMPACTO
+                </div>
+                <div class="flex-1 overflow-x-auto">
+                    <table class="w-full border-collapse">
+                        <tbody>
+                            {% for linha in matriz_residual %}
+                            <tr>
+                                <td class="w-6 text-right pr-2 text-xs font-semibold text-base-400">
+                                    {{ linha.nivel_impacto }}
+                                </td>
+                                {% for celula in linha.colunas %}
+                                <td class="p-1 w-1/5">
+                                    <a href="{% url 'admin:apollo_risco_changelist' %}?probabilidade_residual__exact={{ celula.probabilidade }}&impacto_residual__exact={{ celula.impacto }}"
+                                       class="flex flex-col items-center justify-center h-12 rounded border text-center transition-transform hover:scale-105 {{ celula.classe_cor }}">
+                                        <span class="text-base font-extrabold leading-none">{{ celula.total }}</span>
+                                        <span class="text-[9px] opacity-80 mt-0.5">P{{ celula.probabilidade }}×I{{ celula.impacto }}</span>
+                                    </a>
+                                </td>
+                                {% endfor %}
+                            </tr>
+                            {% endfor %}
+                            <tr>
+                                <td></td>
+                                {% for p in "12345" %}
+                                <td class="text-center pt-1.5 text-xs font-semibold text-base-400">{{ p }}</td>
+                                {% endfor %}
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="text-center text-[11px] font-bold tracking-wider text-base-500 dark:text-base-400 mt-1">
+                        PROBABILIDADE
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{{ block.super }}
+{% endblock %}
